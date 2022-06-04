@@ -1,0 +1,43 @@
+// Copyright 2016-2020 Cadic AB. All Rights Reserved.
+// @Author	Fredrik Lindh [Temaran] (temaran@gmail.com) {https://github.com/Temaran}
+///////////////////////////////////////////////////////////////////////////////////////
+
+#include "/Engine/Public/Platform.ush"
+
+// PIXEL SHADER
+///////////////
+float2 BlurOffset;
+Texture2D SrcRT;
+SamplerState SrcRTSampler;
+
+void MainPixelShader(in float2 uv : TEXCOORD0, out float4 OutColor : SV_Target0)
+{
+	float4 uv01 = uv.xyxy + BlurOffset.xyxy * float4(1, 1, -1, -1);
+	float4 uv23 = uv.xyxy + BlurOffset.xyxy * float4(1, 1, -1, -1) * 2.0;
+	float4 uv45 = uv.xyxy + BlurOffset.xyxy * float4(1, 1, -1, -1) * 6.0;
+	float color = 0;
+	
+	color += 0.40 * SrcRT.SampleLevel(SrcRTSampler, uv, 0).r;
+	color += 0.15 * SrcRT.SampleLevel(SrcRTSampler, uv01.xy, 0).r;
+	color += 0.15 * SrcRT.SampleLevel(SrcRTSampler, uv01.zw, 0).r;
+	color += 0.10 * SrcRT.SampleLevel(SrcRTSampler, uv23.xy, 0).r;
+	color += 0.10 * SrcRT.SampleLevel(SrcRTSampler, uv23.zw, 0).r;
+	color += 0.05 * SrcRT.SampleLevel(SrcRTSampler, uv45.xy, 0).r;
+	color += 0.05 * SrcRT.SampleLevel(SrcRTSampler, uv45.zw, 0).r;
+	OutColor = color;
+}
+
+// Final Combine PIXEL SHADER
+///////////////
+Texture2D MaskRT;
+SamplerState MaskRTSampler;
+Texture2D BlurRT;
+SamplerState BlurRTSampler;
+float MulFactor;
+
+void CombinePixelShader(in float2 uv : TEXCOORD0, out float4 OutColor : SV_Target0)
+{
+	float color = MaskRT.SampleLevel(MaskRTSampler, uv, 0).r;
+	color += BlurRT.SampleLevel(BlurRTSampler, uv, 0).r * MulFactor;
+	OutColor = saturate(color);
+}

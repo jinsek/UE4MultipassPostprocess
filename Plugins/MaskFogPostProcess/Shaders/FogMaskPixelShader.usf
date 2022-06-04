@@ -1,0 +1,40 @@
+// Copyright 2016-2020 Cadic AB. All Rights Reserved.
+// @Author	Fredrik Lindh [Temaran] (temaran@gmail.com) {https://github.com/Temaran}
+///////////////////////////////////////////////////////////////////////////////////////
+
+#include "/Engine/Public/Platform.ush"
+
+// VERTEX SHADER
+////////////////
+
+void MainVertexShader(float4 InPosition : ATTRIBUTE0, float2 InUV : ATTRIBUTE1, out float2 OutUV : TEXCOORD0, out float4 OutPosition : SV_POSITION)
+{
+	OutPosition = InPosition;
+	OutUV = InUV;
+}
+
+// PIXEL SHADER
+///////////////
+float2 TextureSize;
+float4 InvDeviceZToWorldZTransform;
+float2 ScreenUVSize;
+Texture2D SrcRT;
+SamplerState SrcRTSampler;
+Texture2D SceneDepthTexture;
+SamplerState SceneDepthSampler;
+
+float ConvertFromDeviceZ(float DeviceZ)
+{
+	// Supports ortho and perspective, see CreateInvDeviceZToWorldZTransform()
+	return DeviceZ * InvDeviceZToWorldZTransform[0] + InvDeviceZToWorldZTransform[1] + 1.0f / (DeviceZ * InvDeviceZToWorldZTransform[2] - InvDeviceZToWorldZTransform[3]);
+}
+
+void MainPixelShader(in float2 uv : TEXCOORD0, out float4 OutColor : SV_Target0)
+{
+	float PixelDepth = SrcRT.SampleLevel(SrcRTSampler, uv, 0).r;	
+	float SceneDepth = ConvertFromDeviceZ(SceneDepthTexture.SampleLevel(SceneDepthSampler, uv * ScreenUVSize, 0).r);
+	if (PixelDepth < SceneDepth)
+		OutColor = 1;
+	else
+		OutColor = 0;
+}

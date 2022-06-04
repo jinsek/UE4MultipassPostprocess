@@ -1,0 +1,14 @@
+{
+	"RemapUnityFiles": 
+	{
+		"Module.MaskFogPostProcess.cpp.obj": [
+			"FogMaskPixelShader.cpp.obj",
+			"MaskFogActor.cpp.obj",
+			"MaskFogPostProcess.cpp.obj"
+		],
+		"Module.MaskFogPostProcess.gen.cpp.obj": [
+			"MaskFogActor.gen.cpp.obj",
+			"MaskFogPostProcess.init.gen.cpp.obj"
+		]
+	}
+}
